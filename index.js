@@ -4,16 +4,16 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys'
 import express from 'express'
 import cors from 'cors'
-import qrcode from 'qrcode-terminal'
 
 // ======================
 // CONFIG
 // ======================
 const PORT = process.env.PORT || 3000
 
-const LINK_CARDAPIO = process.env.LINK_CARDAPIO || 'https://SEU-LINK-DO-CARDAPIO.com'
+const LINK_CARDAPIO =
+  process.env.LINK_CARDAPIO || 'https://SEU-LINK-DO-CARDAPIO.com'
 
-// Mensagens automáticas iniciais
+// Mensagens automáticas
 const MENSAGEM_SAUDACAO = `👋 Olá! Seja bem-vindo(a) 😄
 Sou o atendimento automático da *Dominus Food*.`
 
@@ -39,7 +39,6 @@ app.use(express.json())
 let sock = null
 
 // Controle simples de primeira mensagem
-// (em produção futura isso vai para Redis/Banco)
 const contatosAtendidos = new Set()
 
 // ======================
@@ -61,13 +60,17 @@ async function iniciarWhatsApp() {
 
     sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
       if (qr) {
-        console.log('📲 Escaneie o QR Code abaixo para conectar o WhatsApp:')
-        qrcode.generate(qr, { small: true })
+        console.log('📲 QR CODE (copie tudo abaixo):')
+        console.log(qr)
+        console.log(
+          '🔗 Cole esse texto em um gerador de QR Code (ex: https://www.the-qrcode-generator.com)'
+        )
       }
 
       if (connection === 'close') {
         const shouldReconnect =
-          lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
+          lastDisconnect?.error?.output?.statusCode !==
+          DisconnectReason.loggedOut
 
         console.error('❌ Conexão caiu. Reconectar?', shouldReconnect)
 
@@ -140,7 +143,9 @@ app.post('/pedido', async (req, res) => {
 
     const jid = `${cliente.telefone}@s.whatsapp.net`
     const nomeCliente = cliente.nome ? `Olá ${cliente.nome} 👋\n` : ''
-    const numeroPedido = pedido?.numero ? `Pedido ${pedido.numero}\n\n` : ''
+    const numeroPedido = pedido?.numero
+      ? `Pedido ${pedido.numero}\n\n`
+      : ''
 
     await sock.sendMessage(jid, {
       text: `${nomeCliente}${numeroPedido}${mensagemStatus}`
