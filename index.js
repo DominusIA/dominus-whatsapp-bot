@@ -9,7 +9,6 @@ import cors from 'cors'
 // CONFIG
 // ======================
 const PORT = process.env.PORT || 3000
-
 const LINK_CARDAPIO =
   process.env.LINK_CARDAPIO || 'https://SEU-LINK-DO-CARDAPIO.com'
 
@@ -53,20 +52,12 @@ async function iniciarWhatsApp() {
     sock = makeWASocket({
       auth: state,
       browser: ['DominusFood', 'Chrome', '1.0.0'],
-      printQRInTerminal: false
+      printQRInTerminal: true // ✅ QR em blocos no terminal
     })
 
     sock.ev.on('creds.update', saveCreds)
 
-    sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
-      if (qr) {
-        console.log('📲 QR CODE (copie tudo abaixo):')
-        console.log(qr)
-        console.log(
-          '🔗 Cole esse texto em um gerador de QR Code (ex: https://www.the-qrcode-generator.com)'
-        )
-      }
-
+    sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
       if (connection === 'close') {
         const shouldReconnect =
           lastDisconnect?.error?.output?.statusCode !==
